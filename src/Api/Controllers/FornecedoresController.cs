@@ -1,6 +1,7 @@
 ﻿using Api.DTOs;
 using AutoMapper;
 using Business.Intefaces;
+using Business.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
@@ -16,7 +17,8 @@ namespace Api.Controllers
         public FornecedoresController(IFornecedorRepository fornecedorRepository,
                                       IMapper mapper,
                                       IFornecedorService fornecedorService,
-                                      IEnderecoRepository enderecoRepository)
+                                      IEnderecoRepository enderecoRepository,
+                                      INotificador notificador) : base(notificador)
         {
             _fornecedorRepository = fornecedorRepository;
             _mapper = mapper;
@@ -28,6 +30,60 @@ namespace Api.Controllers
         public async Task<IEnumerable<FornecedorDTO>> ObterTodos()
         {
             return _mapper.Map<IEnumerable<FornecedorDTO>>(await _fornecedorRepository.ObterTodos());
+        }
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<FornecedorDTO>> ObterPorId(Guid id)
+        {
+            var fornecedor = await ObterFornecedorProdutosEndereco(id);
+
+            if (fornecedor == null) return NotFound();
+
+            return fornecedor;
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<FornecedorDTO>> Adicionar(FornecedorDTO fornecedorDTO)
+        {
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            await _fornecedorService.Adicionar(_mapper.Map<Fornecedor>(fornecedorDTO));
+
+            return CustomResponse(fornecedorDTO);
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<FornecedorDTO>> Atualizar(Guid id, FornecedorDTO fornecedorDTO)
+        {
+            if(id != fornecedorDTO.Id) return BadRequest();
+            
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            await _fornecedorService.Atualizar(_mapper.Map<Fornecedor>(fornecedorDTO));
+
+            return CustomResponse(fornecedorDTO);
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult<FornecedorDTO>> Excluir(Guid id)
+        {
+            var fornecedor = await ObterFornecedorEndereco(id);
+
+            if (fornecedor != null) return NotFound();
+
+            await _fornecedorService.Remover(id);
+
+            return CustomResponse();
+        }
+
+        public async Task<FornecedorDTO> ObterFornecedorProdutosEndereco(Guid id)
+        {
+            return _mapper.Map<FornecedorDTO>(await _fornecedorRepository.ObterFornecedorProdutosEndereco(id));
+        }
+
+        public async Task<FornecedorDTO> ObterFornecedorEndereco(Guid id)
+        {
+            return _mapper.Map<FornecedorDTO>(await _fornecedorRepository.ObterFornecedorEndereco(id));
         }
     }
 }

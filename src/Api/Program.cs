@@ -1,5 +1,6 @@
 using Api.Configuration;
 using Data.Context;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,6 +14,11 @@ builder.Services.ResolveDependencies();
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+});
+
+builder.Services.Configure<ApiBehaviorOptions>(options => 
+{ 
+    options.SuppressModelStateInvalidFilter = true; 
 });
 
 
