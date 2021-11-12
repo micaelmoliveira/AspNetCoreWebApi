@@ -21,6 +21,14 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     options.SuppressModelStateInvalidFilter = true; 
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Development",
+        policy => policy.AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        );
+});
 
 var app = builder.Build();
 
@@ -31,5 +39,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseCors("Development");
 
 app.Run();

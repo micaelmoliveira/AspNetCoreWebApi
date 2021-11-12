@@ -76,6 +76,24 @@ namespace Api.Controllers
             return CustomResponse();
         }
 
+        [HttpGet("obter-endereco/{id:guid}")]
+        public async Task<EnderecoDTO> ObterEnderecoPorId(Guid id)
+        {
+            return _mapper.Map<EnderecoDTO>(await _enderecoRepository.ObterPorId(id));
+        }
+
+        [HttpPut("atualizar-endereco/{id:guid}")]
+        public async Task<IActionResult> AtualizarEndereco(Guid id, EnderecoDTO enderecoDTO )
+        {
+            if (id != enderecoDTO.Id) return BadRequest();
+
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            await _fornecedorService.AtualizarEndereco(_mapper.Map<Endereco>(enderecoDTO));
+
+            return CustomResponse(enderecoDTO);
+        }
+
         public async Task<FornecedorDTO> ObterFornecedorProdutosEndereco(Guid id)
         {
             return _mapper.Map<FornecedorDTO>(await _fornecedorRepository.ObterFornecedorProdutosEndereco(id));

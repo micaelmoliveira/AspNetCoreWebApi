@@ -17,10 +17,10 @@ namespace Api.DTOs
 
         public int TipoFornecedor { get; set; }
 
-        public EnderecoDTO Endereco { get; set; }
+        public EnderecoDTO? Endereco { get; set; }
 
         public bool Ativo { get; set; }
 
-        public IEnumerable<ProdutoDTO> Produtos { get; set; }
+        public IEnumerable<ProdutoDTO>? Produtos { get; set; }
     }
 }
