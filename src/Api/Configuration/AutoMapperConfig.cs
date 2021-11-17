@@ -12,6 +12,8 @@ namespace Api.Configuration
             CreateMap<Endereco, EnderecoDTO>().ReverseMap();
             CreateMap<ProdutoDTO, Produto>();
 
+            CreateMap<ProdutoImagemDTO, Produto>().ReverseMap();
+
             CreateMap<Produto, ProdutoDTO>()
                 .ForMember(dest => dest.NomeFornecedor, opt => opt.MapFrom(src => src.Fornecedor.Nome));
 

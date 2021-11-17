@@ -10,18 +10,18 @@ namespace Api.Controllers
     public class ProdutosController : MainController
     {
         private readonly IProdutoRepository _produtoRepository;
-        private readonly IProdutoService _produtoservice;
+        private readonly IProdutoService _produtoService;
         private readonly IMapper _mapper;
 
 
 
         public ProdutosController(IProdutoRepository produtoRepository,
-                                  IProdutoService produtoservice,
+                                  IProdutoService produtoService,
                                   IMapper mapper,
                                   INotificador notificador) : base(notificador)
         {
             _produtoRepository = produtoRepository;
-            _produtoservice = produtoservice;
+            _produtoService = produtoService;
             _mapper = mapper;
         }
 
@@ -41,24 +41,61 @@ namespace Api.Controllers
             return produto;
         }
 
-        [HttpPost]
+        [HttpPost("adicionar")]
         public async Task<ActionResult<ProdutoDTO>> Adicionar(ProdutoDTO produtoDTO)
         {
             if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var imagemNome = new Guid() + "_" + produtoDTO.Imagem;
+            var imagemNome = Guid.NewGuid() + "_" + produtoDTO.Imagem;
 
-            if(!UploadArquivo(produtoDTO.Imagem, imagemNome))
+            if (!UploadArquivo(produtoDTO.ImagemUpload, imagemNome))
             {
-                return CustomResponse();
+                return CustomResponse(produtoDTO);
             }
 
             produtoDTO.Imagem = imagemNome;
-            await _produtoservice.Adicionar(_mapper.Map<Produto>(produtoDTO));
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoDTO));
 
             return CustomResponse(produtoDTO);
         }
 
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult<ProdutoDTO>> Atualizar(Guid id, ProdutoDTO produtoDTO)
+        {
+            if (id != produtoDTO.Id) 
+            {
+                NotificarErro("Os ids informados não são iguais!");
+                return CustomResponse();
+            }
+
+            var produtoAtualizacao = await ObterProduto(id);
+
+            if (string.IsNullOrEmpty(produtoDTO.Imagem))
+                produtoDTO.Imagem = produtoAtualizacao.Imagem;
+
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
+
+            if (produtoDTO.ImagemUpload != null)
+            {
+                var imagemNome = Guid.NewGuid() + "_" + produtoDTO.Imagem;
+                if (!UploadArquivo(produtoDTO.ImagemUpload, imagemNome))
+                {
+                    return CustomResponse(ModelState);
+                }
+
+                produtoAtualizacao.Imagem = imagemNome;
+            }
+
+            produtoAtualizacao.FornecedorId = produtoDTO.FornecedorId;
+            produtoAtualizacao.Nome = produtoDTO.Nome;
+            produtoAtualizacao.Descricao = produtoDTO.Descricao;
+            produtoAtualizacao.Valor = produtoDTO.Valor;
+            produtoAtualizacao.Ativo = produtoDTO.Ativo;
+
+            await _produtoService.Atualizar(_mapper.Map<Produto>(produtoAtualizacao));
+
+            return CustomResponse(produtoDTO);
+        }
 
         [HttpDelete("{id:guid}")]
         public async Task<ActionResult<ProdutoDTO>> Excluir(Guid id)
@@ -67,7 +104,7 @@ namespace Api.Controllers
 
             if (produto != null) return NotFound();
 
-            await _produtoservice.Remover(id);
+            await _produtoService.Remover(id);
 
             return CustomResponse();
         }
