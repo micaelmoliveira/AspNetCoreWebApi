@@ -16,6 +16,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddIdentityConfiguration(builder.Configuration);
+
 builder.Services.WebApiConfig();
 
 
@@ -24,6 +26,8 @@ builder.Services.WebApiConfig();
 var app = builder.Build();
 
 app.MapControllers();
+
+app.UseAuthentication();
 
 app.UseMvcConfiguration();
 
